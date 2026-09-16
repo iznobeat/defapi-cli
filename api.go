@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -42,9 +43,9 @@ func (e *responseError) Error() string {
 }
 
 type taskData struct {
-	TaskID string          `json:"task_id"`
-	Status string          `json:"status"`
-	Result json.RawMessage `json:"result"`
+	TaskID       string          `json:"task_id"`
+	Status       string          `json:"status"`
+	Result       json.RawMessage `json:"result"`
 	StatusReason struct {
 		Message *string `json:"message"`
 	} `json:"status_reason"`
@@ -96,7 +97,10 @@ func readResponse(resp *http.Response) json.RawMessage {
 }
 
 func readResponseData(resp *http.Response) (json.RawMessage, error) {
-	raw, _ := io.ReadAll(resp.Body)
+	raw, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("read response: %w", err)
+	}
 	var ar apiResponse
 	if err := json.Unmarshal(raw, &ar); err != nil && resp.StatusCode < 400 {
 		return nil, fmt.Errorf("parse error: %w", err)
@@ -132,11 +136,15 @@ func extractTaskID(data json.RawMessage) string {
 }
 
 func pollLoop(taskID, key string) json.RawMessage {
+	if taskID == "" {
+		fmt.Fprintln(os.Stderr, "error: no task ID in submission response")
+		os.Exit(1)
+	}
 	fmt.Printf("Task submitted: %s\nPolling", taskID)
 	taskNotFoundRetries := 0
 	for {
 		time.Sleep(pollInterval)
-		data, err := getData("/api/task/query?task_id="+taskID, key)
+		data, err := getData("/api/task/query?task_id="+url.QueryEscape(taskID), key)
 		if err != nil {
 			if isTaskNotFoundError(err) && taskNotFoundRetries < taskNotFoundRetryLimit {
 				taskNotFoundRetries++
@@ -149,7 +157,10 @@ func pollLoop(taskID, key string) json.RawMessage {
 		taskNotFoundRetries = 0
 
 		var td taskData
-		json.Unmarshal(data, &td)
+		if err := json.Unmarshal(data, &td); err != nil || td.Status == "" {
+			fmt.Fprintln(os.Stderr, "error: invalid task status response")
+			os.Exit(1)
+		}
 
 		switch td.Status {
 		case "success":
@@ -214,10 +225,14 @@ func pollVideo(taskID, key string) string {
 	return r.Video
 }
 
-func guessExt(url string) string {
-	lower := strings.ToLower(url)
+func guessExt(rawURL string) string {
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return ".png"
+	}
+	pathExt := strings.ToLower(filepath.Ext(u.Path))
 	for _, ext := range []string{".png", ".jpg", ".jpeg", ".webp"} {
-		if strings.Contains(lower, ext) {
+		if pathExt == ext {
 			return ext
 		}
 	}
@@ -229,9 +244,16 @@ func guessExt(url string) string {
 func download(mediaURL, taskID, defaultExt, outputPath string) string {
 	dest := outputPath
 	if dest == "" {
-		home, _ := os.UserHomeDir()
+		home, err := os.UserHomeDir()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "home directory error: %v\n", err)
+			os.Exit(1)
+		}
 		dir := filepath.Join(home, "Downloads")
-		os.MkdirAll(dir, 0755)
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			fmt.Fprintf(os.Stderr, "file error: %v\n", err)
+			os.Exit(1)
+		}
 		ext := defaultExt
 		if ext == "" {
 			ext = guessExt(mediaURL)
@@ -257,21 +279,37 @@ func download(mediaURL, taskID, defaultExt, outputPath string) string {
 	}
 
 	fmt.Println("Downloading...")
-	resp, err := http.Get(mediaURL)
-	if err != nil {
+	if err := downloadFile(mediaURL, dest); err != nil {
 		fmt.Fprintf(os.Stderr, "download error: %v\n", err)
 		os.Exit(1)
 	}
-	defer resp.Body.Close()
-
-	f, err := os.Create(dest)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "file error: %v\n", err)
-		os.Exit(1)
-	}
-	defer f.Close()
-	io.Copy(f, resp.Body)
 	return dest
+}
+
+// Stage downloads beside the destination so failures preserve existing output.
+func downloadFile(mediaURL, dest string) error {
+	resp, err := http.Get(mediaURL)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return fmt.Errorf("HTTP %d", resp.StatusCode)
+	}
+
+	f, err := os.CreateTemp(filepath.Dir(dest), ".defapi-download-*")
+	if err != nil {
+		return err
+	}
+	defer os.Remove(f.Name())
+	defer f.Close()
+	if _, err := io.Copy(f, resp.Body); err != nil {
+		return err
+	}
+	if err := f.Close(); err != nil {
+		return err
+	}
+	return os.Rename(f.Name(), dest)
 }
 
 func printResult(dest string) {

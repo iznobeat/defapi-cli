@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"strings"
 )
 
 func cmdSeedance(args []string) {
@@ -19,7 +18,7 @@ func cmdSeedance(args []string) {
 	}
 	fs.Parse(args)
 
-	prompt := strings.Join(fs.Args(), " ")
+	prompt := promptFromArgs(fs.Args())
 	if prompt == "" {
 		fs.Usage()
 		os.Exit(1)
@@ -69,7 +68,7 @@ func cmdGrok(args []string) {
 	}
 	fs.Parse(args)
 
-	prompt := strings.Join(fs.Args(), " ")
+	prompt := promptFromArgs(fs.Args())
 	if prompt == "" {
 		fs.Usage()
 		os.Exit(1)
@@ -117,7 +116,7 @@ func cmdSora(args []string) {
 	}
 	fs.Parse(args)
 
-	prompt := strings.Join(fs.Args(), " ")
+	prompt := promptFromArgs(fs.Args())
 	if prompt == "" {
 		fs.Usage()
 		os.Exit(1)

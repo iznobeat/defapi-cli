@@ -24,6 +24,9 @@ func extractOutputArg(args []string) ([]string, string) {
 	for i := 0; i < len(args); i++ {
 		arg := args[i]
 		switch {
+		case arg == "--":
+			cleaned = append(cleaned, args[i:]...)
+			return cleaned, output
 		case arg == "--output" || arg == "-o":
 			if i+1 >= len(args) {
 				fmt.Fprintf(os.Stderr, "error: %s requires a file path\n", arg)
@@ -166,7 +169,7 @@ func cmdGPTImage(command string, args []string, defaultModel string) {
 	background := fs.String("background", "auto", "Background: auto, opaque, transparent")
 	format := fs.String("format", "png", "Output format: png, jpeg, webp")
 	var images stringListFlag
-	fs.Var(&images, "image", "Reference image URL for gpt-image-2 editing (repeatable or comma-separated)")
+	fs.Var(&images, "image", "Reference image URL for gpt-image-2 editing (repeatable)")
 	output := outputFlag(fs)
 	open := fs.Bool("open", false, "Open the image after download")
 	fs.Usage = func() {
@@ -345,4 +348,3 @@ func cmdImage(args []string) {
 		os.Exit(1)
 	}
 }
-

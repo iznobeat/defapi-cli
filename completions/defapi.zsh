@@ -19,12 +19,12 @@ _defapi() {
             case ${words[2]} in
                 text)
                     _values 'model' \
-                        'gpt[OpenAI GPT-5.2]' \
-                        'openai[OpenAI GPT-5.2]' \
-                        'gemini[Google Gemini 3.1 Pro Preview]' \
-                        'google[Google Gemini 3.1 Pro Preview]' \
-                        'claude[Anthropic Claude Sonnet 4.6]' \
-                        'anthropic[Anthropic Claude Sonnet 4.6]'
+                        'gpt[OpenAI GPT-5.6 Sol]' \
+                        'openai[OpenAI GPT-5.6 Sol]' \
+                        'gemini[Google Gemini 3.8 Flash]' \
+                        'google[Google Gemini 3.8 Flash]' \
+                        'claude[Anthropic Claude Opus 5]' \
+                        'anthropic[Anthropic Claude Opus 5]'
                     ;;
                 image)
                     _values 'model' \
@@ -48,7 +48,7 @@ _defapi() {
                     case ${words[3]} in
                         gpt|openai)
                             _arguments \
-                                '--model[Model]:model:(openai/gpt-5.2)' \
+                                '--model[Model]:model:(openai/gpt-5.6-sol openai/gpt-5.2)' \
                                 '--system[System instruction]:system:' \
                                 '--stream[Stream response]' \
                                 '--max-tokens[Maximum output tokens]:tokens:' \
@@ -59,7 +59,7 @@ _defapi() {
                             ;;
                         gemini|google)
                             _arguments \
-                                '--model[Model]:model:(gemini-3.1-pro-preview google/gemini-3.1-pro-preview)' \
+                                '--model[Model]:model:(gemini-3.8-flash google/gemini-3.8-flash gemini-3.1-pro-preview google/gemini-3.1-pro-preview)' \
                                 '--system[System instruction]:system:' \
                                 '--stream[Stream response]' \
                                 '--max-tokens[Maximum output tokens]:tokens:' \
@@ -70,7 +70,7 @@ _defapi() {
                             ;;
                         claude|anthropic)
                             _arguments \
-                                '--model[Model]:model:(anthropic/claude-sonnet-4.6)' \
+                                '--model[Model]:model:(anthropic/claude-opus-5 anthropic/claude-sonnet-4.6)' \
                                 '--system[System instruction]:system:' \
                                 '--stream[Stream response]' \
                                 '--max-tokens[Maximum output tokens]:tokens:' \

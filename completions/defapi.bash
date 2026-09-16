@@ -16,21 +16,21 @@ _defapi() {
             case "${words[2]}" in
                 gpt|openai)
                     case "$prev" in
-                        --model) COMPREPLY=($(compgen -W "openai/gpt-5.2" -- "$cur")) ;;
+                        --model) COMPREPLY=($(compgen -W "openai/gpt-5.6-sol openai/gpt-5.2" -- "$cur")) ;;
                         --output|-o) COMPREPLY=($(compgen -f -- "$cur")) ;;
                         --max-tokens|--temperature|--top-p|--system) COMPREPLY=() ;;
                         *) COMPREPLY=($(compgen -W "--model --system --stream --stream=false --max-tokens --temperature --top-p --output -o" -- "$cur")) ;;
                     esac ;;
                 gemini|google)
                     case "$prev" in
-                        --model) COMPREPLY=($(compgen -W "gemini-3.1-pro-preview google/gemini-3.1-pro-preview" -- "$cur")) ;;
+                        --model) COMPREPLY=($(compgen -W "gemini-3.8-flash google/gemini-3.8-flash gemini-3.1-pro-preview google/gemini-3.1-pro-preview" -- "$cur")) ;;
                         --output|-o) COMPREPLY=($(compgen -f -- "$cur")) ;;
                         --max-tokens|--temperature|--top-p|--system) COMPREPLY=() ;;
                         *) COMPREPLY=($(compgen -W "--model --system --stream --stream=false --max-tokens --temperature --top-p --output -o" -- "$cur")) ;;
                     esac ;;
                 claude|anthropic)
                     case "$prev" in
-                        --model) COMPREPLY=($(compgen -W "anthropic/claude-sonnet-4.6" -- "$cur")) ;;
+                        --model) COMPREPLY=($(compgen -W "anthropic/claude-opus-5 anthropic/claude-sonnet-4.6" -- "$cur")) ;;
                         --output|-o) COMPREPLY=($(compgen -f -- "$cur")) ;;
                         --max-tokens|--temperature|--top-p|--system) COMPREPLY=() ;;
                         *) COMPREPLY=($(compgen -W "--model --system --stream --stream=false --max-tokens --temperature --top-p --output -o" -- "$cur")) ;;

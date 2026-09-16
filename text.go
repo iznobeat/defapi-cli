@@ -175,7 +175,7 @@ func postJSON(endpoint string, body map[string]any, key string) *http.Response {
 	}
 	req.Header.Set("Authorization", "Bearer "+key)
 	req.Header.Set("Content-Type", "application/json")
-	if body["stream"] == true {
+	if body["stream"] == true || strings.Contains(endpoint, ":streamGenerateContent") {
 		req.Header.Set("Accept", "text/event-stream")
 	}
 
@@ -283,7 +283,7 @@ func commonFlags(command string, args []string, defaultModel string, defaultStre
 }
 
 func cmdOpenAI(command string, args []string) {
-	opts := commonFlags(command, args, "openai/gpt-5.2", false)
+	opts := commonFlags(command, args, "openai/gpt-5.6-sol", false)
 	key := apiKey()
 	w, done := outputWriter(opts.output)
 	defer done()
@@ -336,7 +336,7 @@ func cmdOpenAI(command string, args []string) {
 }
 
 func cmdClaude(command string, args []string) {
-	opts := commonFlags(command, args, "anthropic/claude-sonnet-4.6", false)
+	opts := commonFlags(command, args, "anthropic/claude-opus-5", false)
 	key := apiKey()
 	w, done := outputWriter(opts.output)
 	defer done()
@@ -385,29 +385,48 @@ func cmdClaude(command string, args []string) {
 	}
 }
 
-func cmdGemini(command string, args []string) {
-	opts := commonFlags(command, args, "gemini-3.1-pro-preview", false)
-	key := apiKey()
-	w, done := outputWriter(opts.output)
-	defer done()
-
-	prompt := opts.prompt
-	if opts.system != "" {
-		prompt = opts.system + "\n\n" + opts.prompt
+func geminiBody(opts commandOptions) map[string]any {
+	config := map[string]any{"responseModalities": []string{"TEXT"}}
+	if opts.maxTokens > 0 {
+		config["maxOutputTokens"] = opts.maxTokens
+	}
+	if opts.temperature >= 0 {
+		config["temperature"] = opts.temperature
+	}
+	if opts.topP >= 0 {
+		config["topP"] = opts.topP
 	}
 	body := map[string]any{
 		"contents": []map[string]any{{
 			"role":  "user",
-			"parts": []map[string]any{{"text": prompt}},
+			"parts": []map[string]any{{"text": opts.prompt}},
 		}},
+		"generationConfig": config,
 	}
-	body["generationConfig"] = map[string]any{"responseModalities": []string{"TEXT"}}
+	if opts.system != "" {
+		body["systemInstruction"] = map[string]any{
+			"parts": []map[string]any{{"text": opts.system}},
+		}
+	}
+	return body
+}
 
-	modelPath := url.PathEscape(strings.TrimPrefix(opts.model, "google/"))
-	endpoint := "/api/v1beta/models/" + modelPath + ":generateContent"
-	if opts.stream {
-		endpoint = "/api/v1beta/models/" + modelPath + ":streamGenerateContent"
+func geminiEndpoint(model string, stream bool) string {
+	endpoint := "/api/v1beta/models/" + url.PathEscape(strings.TrimPrefix(model, "google/"))
+	if stream {
+		return endpoint + ":streamGenerateContent?alt=sse"
 	}
+	return endpoint + ":generateContent"
+}
+
+func cmdGemini(command string, args []string) {
+	opts := commonFlags(command, args, "gemini-3.8-flash", false)
+	key := apiKey()
+	w, done := outputWriter(opts.output)
+	defer done()
+
+	body := geminiBody(opts)
+	endpoint := geminiEndpoint(opts.model, opts.stream)
 	resp := postJSON(endpoint, body, key)
 	if opts.stream {
 		streamLines(resp, func(raw []byte) {
@@ -443,9 +462,9 @@ func textUsage() {
 	fmt.Println(`Usage: defapi text <model> [flags] <prompt>
 
 Models:
-  gpt       OpenAI GPT-5.2 via chat completions
-  gemini    Google Gemini 3.1 Pro Preview via generateContent
-  claude    Anthropic Claude Sonnet 4.6 via messages
+  gpt       OpenAI GPT-5.6 Sol via chat completions
+  gemini    Google Gemini 3.8 Flash via generateContent
+  claude    Anthropic Claude Opus 5 via messages
 
 Aliases:
   openai, google, anthropic

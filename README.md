@@ -20,7 +20,7 @@ Add to `~/.bashrc` or `~/.zshrc` to persist it.
 curl -fsSL https://raw.githubusercontent.com/jhgundersen/defapi-cli/master/install.sh | sh
 ```
 
-Or build from source:
+Or build from source with Go 1.26.2 or newer (the included `mise.toml` pins 1.26.2):
 
 ```sh
 go build -o defapi .
@@ -32,23 +32,36 @@ go build -o defapi .
 defapi <category> <model> [flags] <prompt>
 ```
 
-Prompt can also be piped via stdin.
+Prompt can also be piped via stdin for all categories. A positional prompt takes
+precedence over stdin; flags should precede the prompt.
 
 ### Text
 
 ```sh
 defapi text gpt    "Explain recursion"
 defapi text claude "Write a haiku about Go"
-defapi text gemini "Summarize this article" < article.txt
+defapi text gemini --system "Summarize this article" < article.txt
 ```
 
 | Model    | Provider  | Default                        |
 |----------|-----------|--------------------------------|
-| `gpt`    | OpenAI    | gpt-5.2                        |
-| `claude` | Anthropic | claude-sonnet-4.6              |
-| `gemini` | Google    | gemini-3.1-pro-preview         |
+| `gpt`    | OpenAI    | gpt-5.6-sol                    |
+| `claude` | Anthropic | claude-opus-5                  |
+| `gemini` | Google    | gemini-3.8-flash                |
 
 Common flags: `--model`, `--system`, `--stream`, `--max-tokens`, `--temperature`, `--top-p`, `--output/-o`
+
+These defaults can also be selected explicitly with `--model`:
+
+```sh
+defapi text gpt --model openai/gpt-5.6-sol "Explain recursion"
+defapi text claude --model anthropic/claude-opus-5 "Review this design"
+defapi text gemini --model gemini-3.8-flash "Write a haiku"
+```
+
+These identifiers are listed as active by Defapi, but have not been verified with
+paid generation calls. Older models remain selectable with `--model`. See the
+[2026-09-16 API review](docs/defapi-review-2026-09-16.md) for sources and limitations.
 
 ### Image
 
