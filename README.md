@@ -17,7 +17,7 @@ Add to `~/.bashrc` or `~/.zshrc` to persist it.
 ## Install
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/jhgundersen/defapi-cli/master/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/iznobeat/defapi-cli/master/install.sh | sh
 ```
 
 Or build from source with Go 1.26.2 or newer (the included `mise.toml` pins 1.26.2):
