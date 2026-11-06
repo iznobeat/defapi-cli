@@ -11,7 +11,7 @@ func mainUsage() {
 Categories:
   text    Text generation (gpt, gemini, claude)
   image   Image generation (wan, mj, gpt, gpt2, google)
-  video   Video generation (seedance, grok, sora)
+  video   Video generation (seedance, grok, sora, kling)
 
 Run 'defapi <category> --help' for model-specific usage.`)
 }

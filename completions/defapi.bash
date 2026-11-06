@@ -78,7 +78,7 @@ _defapi() {
 
         video)
             if [[ $cword -eq 2 ]]; then
-                COMPREPLY=($(compgen -W "seedance grok sora" -- "$cur"))
+                COMPREPLY=($(compgen -W "seedance grok sora kling" -- "$cur"))
                 return
             fi
             case "${words[2]}" in
@@ -100,6 +100,13 @@ _defapi() {
                         --ratio)    COMPREPLY=($(compgen -W "16:9 9:16" -- "$cur")) ;;
                         --variant)  COMPREPLY=($(compgen -W "sora-2 sora-2-hd sora-2-pro" -- "$cur")) ;;
                         *) COMPREPLY=($(compgen -W "--duration --ratio --variant --image --open" -- "$cur")) ;;
+                    esac ;;
+                kling)
+                    case "$prev" in
+                        --duration)   COMPREPLY=($(compgen -W "3 5 10 15 20 30" -- "$cur")) ;;
+                        --resolution) COMPREPLY=($(compgen -W "720p 1080p" -- "$cur")) ;;
+                        --ratio)      COMPREPLY=($(compgen -W "auto 16:9 9:16 1:1 21:9" -- "$cur")) ;;
+                        *) COMPREPLY=($(compgen -W "--duration --resolution --ratio --image --video --keep-sound --first-frame --keyframe --last-frame --open" -- "$cur")) ;;
                     esac ;;
             esac ;;
     esac

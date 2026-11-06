@@ -38,7 +38,8 @@ _defapi() {
                     _values 'model' \
                         'seedance[ByteDance Seedance 2.0]' \
                         'grok[xAI Grok Imagine Video]' \
-                        'sora[OpenAI Sora 2 Stable]'
+                        'sora[OpenAI Sora 2 Stable]' \
+                        'kling[Kuaishou Kling 4.0]'
                     ;;
             esac
             ;;
@@ -146,6 +147,20 @@ _defapi() {
                                 '--ratio[Aspect ratio]:ratio:(16:9 9:16)' \
                                 '--variant[Model variant]:variant:(sora-2 sora-2-hd sora-2-pro)' \
                                 '--image[Reference image URL]:url:' \
+                                '--open[Open video after download]' \
+                                '*:prompt:'
+                            ;;
+                        kling)
+                            _arguments \
+                                '--duration[Duration in seconds (3-30)]:duration:(3 5 10 15 20 30)' \
+                                '--resolution[Resolution]:resolution:(720p 1080p)' \
+                                '--ratio[Aspect ratio]:ratio:(auto 16:9 9:16 1:1 21:9)' \
+                                '*--image[Reference image URL]:url:' \
+                                '*--video[Reference video URL]:url:' \
+                                '--keep-sound[Keep reference video audio]' \
+                                '--first-frame[First frame image URL]:url:' \
+                                '*--keyframe[Intermediate keyframe image URL]:url:' \
+                                '--last-frame[Last frame image URL]:url:' \
                                 '--open[Open video after download]' \
                                 '*:prompt:'
                             ;;

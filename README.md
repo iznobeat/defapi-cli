@@ -89,6 +89,9 @@ Common flags: `--output/-o`, `--open`
 defapi video seedance --duration 10 --ratio 16:9 "A dolphin jumping"
 defapi video grok     --duration 15 "Aurora borealis timelapse"
 defapi video sora     --variant sora-2-hd "Slow motion waterfall"
+defapi video kling    --duration 10 --resolution 1080p "A cat walks across a sunlit room"
+defapi video kling    --image https://example.com/cat.png "@image_1 turns its head and smiles"
+defapi video kling    --first-frame https://example.com/a.png --last-frame https://example.com/b.png "Slow push-in"
 ```
 
 | Model      | Provider  | Durations       |
@@ -96,8 +99,15 @@ defapi video sora     --variant sora-2-hd "Slow motion waterfall"
 | `seedance` | ByteDance | 5, 10, 15s      |
 | `grok`     | xAI       | 10, 15s         |
 | `sora`     | OpenAI    | 10, 15, 25s     |
+| `kling`    | Kuaishou  | 3–30s           |
 
 Common flags: `--duration`, `--ratio`, `--image` (image-to-video), `--open`
+
+Kling 4.0 also takes `--resolution` (720p, 1080p), repeatable `--image` (max 10)
+and `--video` (max 5, billed for input length) references addressed in the prompt as
+`@image_1`/`@video_1`, and `--keep-sound`. Keyframe-to-video uses `--first-frame`,
+repeatable `--keyframe` (max 8), and `--last-frame`; it cannot be combined with
+image or video references.
 
 Videos save to `~/Downloads/defapi_<taskid>.mp4`. Images save to `~/Downloads/defapi_<taskid>.<ext>`.
 
